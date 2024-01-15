@@ -11,8 +11,6 @@ export class CustomersService {
   ) {}
 
   public async get() {
-    const items = await this.stripeService.stripe.prices.list();
-    console.log(items);
     return this.stripeService.stripe.customers.list();
   }
 
