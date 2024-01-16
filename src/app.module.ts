@@ -6,6 +6,9 @@ import { ProductsModule } from './products/products.module';
 import { PricesModule } from './prices/prices.module';
 import { ScheduleSubscriptionsModule } from './schedule-subscriptions/schedule-subscriptions.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { AccountsModule } from './accounts/accounts.module';
+import { ChargesModule } from './charges/charges.module';
+import { PaymentIntentsModule } from './payment-intents/payment-intents.module';
 
 @Module({
   imports: [
@@ -16,6 +19,9 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
     PricesModule,
     ScheduleSubscriptionsModule,
     SubscriptionsModule,
+    AccountsModule,
+    ChargesModule,
+    PaymentIntentsModule,
   ],
 })
 export class AppModule {}

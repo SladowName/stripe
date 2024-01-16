@@ -14,6 +14,7 @@ model User {
   password              String
   subscriptions         Subscription[]
   subscriptionSchedules SubscriptionSchedule[]
+  charges Charge[]
 }
 
 model Product {
@@ -63,7 +64,27 @@ model Phase {
   id Int @id @default(autoincrement())
   startDate DateTime
   endDate DateTime
+}
 
+model Account {
+  id String @id
+  type AccountType
+  country String
+  email String
+}
+
+model Charge {
+  id String @id
+  amount Int
+  currency Currency
+  customer User @relation(fields: [customerId], references: [id])
+  customerId String @map("customer_id")
+}
+
+enum AccountType {
+  standard
+  express
+  custom
 }
 
 enum Currency {
