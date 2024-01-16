@@ -24,6 +24,9 @@ export class CustomersService {
       );
     }
 
+    //TODO check duplicate customer in stripe
+    //TODO metadata
+
     const response = await this.stripeService.stripe.customers.create({
       email: email,
       name: name,

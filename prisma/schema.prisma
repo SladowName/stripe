@@ -73,6 +73,10 @@ model Account {
   email String
 }
 
+//TODO Charge relation Subscription
+//TODO webhook
+
+
 model Charge {
   id String @id
   amount Int
