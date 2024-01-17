@@ -15,6 +15,7 @@ export type ChargeType = {
       };
       paid: boolean;
       customer: string;
+      charge: string;
     };
   };
   type: 'charge.succeeded' | 'charge.failed';

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ChargeType, InvoiceType, WebhookType } from './types/webhook.type';
 import { PrismaService } from '../prisma.service';
 import { StripeService } from '../stripe/stripe.service';
-import { $Enums } from '@prisma/client';
 
 @Injectable()
 export class WebhookService {
@@ -12,6 +11,16 @@ export class WebhookService {
   ) {}
 
   public async create(dto: WebhookType) {
+    // Все запросы в stripe можно сделать идемпотентыми, благодаря этому можно понять был ли принят данный ивент
+    // также можно проверять по id events
+    // Я бы использовал какой-нибудь кеш на подобии редиса, для того чтобы хранить все id ивентов которые приняли,
+    // Установил бы очищение раз в час, чтобы убирать уже проверянные ивенты и которые уже не придут, возможно даже чаще
+    // чтобы не переполнять кеш, и хранить его в актуальном состоянии. Однако это все ещё без фактических расчетов и учета
+    // rps и количества информации которой придется хранить. Так мы избавимся от проверки на дубликат в базе данных, что
+    // очень сильно облегчит ей жизнь.
+
+    // Тут должно происходить обновление статусов оплат и подписок, также передача наших данных дальше во внешние базы данных и сервисы.
+
     switch (dto.type) {
       case 'invoice.payment_failed':
         await this.updateFailedInvoice(dto);
@@ -31,78 +40,50 @@ export class WebhookService {
   }
 
   private async updateSuccessCharge(dto: ChargeType) {
-    const dbCharge = await this.prismaService.charge.findUnique({
+    this.prismaService.charge.update({
+      data: {
+        status: 'succeeded',
+      },
       where: {
-        id: dto.data.object.id,
+        id: dto.data.object.charge,
       },
     });
-
-    if (!dbCharge) {
-      //Если произошла не предвиденная оплата, которая не была зафиксирована у нас в бд. Надо пробрасывать ошибку
-      return;
-    }
-
-    if (dbCharge.status === $Enums.ChargeStatus.succeeded) {
-      //В таком случае если приходит второй вебхук на оплату, я бы оповестил покупателя, а также оповестил тех. поддержку о таком случае.
-      return;
-    }
-
-    //Обновление
   }
 
   private async updateFailedCharge(dto: ChargeType) {
-    const dbCharge = await this.prismaService.charge.findUnique({
+    this.prismaService.charge.update({
+      data: {
+        status: 'failed',
+      },
       where: {
-        id: dto.data.object.id,
+        id: dto.data.object.charge,
       },
     });
-
-    if (!dbCharge) {
-      //Если произошла не предвиденная оплата, которая не была зафиксирована у нас в бд. Надо пробрасывать ошибку
-      return;
-    }
-
-    if (dbCharge.status === $Enums.ChargeStatus.failed) {
-      return;
-    }
   }
 
   private async updatePaidInvoice(dto: InvoiceType) {
-    const dbSubscription = await this.prismaService.subscription.findUnique({
+    this.prismaService.subscription.update({
+      data: {
+        status: 'active',
+      },
       where: {
         id: dto.data.object.subscription,
       },
     });
-
-    if (!dbSubscription) {
-      //Если произошла не предвиденная подписка, которая не была зафиксирована у нас в бд. Надо пробрасывать ошибку
-      return;
-    }
-
-    if (dbSubscription.status === $Enums.SubscriptionStatus.active) {
-      //В таком случае если приходит второй вебхук на подписку, я бы оповестил покупателя, а также оповестил тех. поддержку о таком случае.
-      return;
-    }
   }
 
   private async updateFailedInvoice(dto: InvoiceType) {
-    const dbSubscription = await this.prismaService.subscription.findUnique({
+    this.prismaService.subscription.update({
+      data: {
+        status: 'incomplete',
+      },
       where: {
         id: dto.data.object.subscription,
       },
     });
-
-    if (!dbSubscription) {
-      //Если произошла не предвиденная подписка, которая не была зафиксирована у нас в бд. Надо пробрасывать ошибку
-      return;
-    }
-
-    if (dbSubscription.status === $Enums.SubscriptionStatus.unpaid) {
-      return;
-    }
   }
 
-  private exhaustiveCheck(param: never): never {
-    throw new Error('Не обработанный веб хук')
+  private exhaustiveCheck(_: never): never {
+    throw new Error('Не обработанный веб хук');
   }
 }
