@@ -24,12 +24,32 @@ export class CustomersService {
       );
     }
 
-    //TODO check duplicate customer in stripe
-    //TODO metadata
 
+    //TODO add check exist customer -- done
+    const existInStripe = await this.stripeService.stripe.customers.search({
+      query: `email: \'${email}\' `,
+    });
+
+    if (existInStripe.data.length) {
+      throw new HttpException(
+        { message: 'User with email exist' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    //TODO add metadata -- done
     const response = await this.stripeService.stripe.customers.create({
       email: email,
       name: name,
+      metadata: {
+        lastName: 'lastName',
+        surName: 'surName',
+        city: 'Minsk',
+        country: 'Belarus',
+        sex: 'Men',
+        familyStatus: 'single',
+        year: 20,
+      },
     });
 
     return this.prismaService.user.create({

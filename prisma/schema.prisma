@@ -42,6 +42,7 @@ model Subscription {
   periodEnd DateTime
   customerId String @map("customer_id")
   customer   User   @relation(fields: [customerId], references: [id])
+  charges Charge[]
 }
 
 model SubscriptionSchedule {
@@ -73,16 +74,17 @@ model Account {
   email String
 }
 
-//TODO Charge relation Subscription
-//TODO webhook
-
+//TODO Charge relation Subscription -- done
 
 model Charge {
   id String @id
   amount Int
   currency Currency
+  status ChargeStatus
   customer User @relation(fields: [customerId], references: [id])
   customerId String @map("customer_id")
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String @map("subscription_id")
 }
 
 enum AccountType {
@@ -115,4 +117,10 @@ enum SubscriptionStatus {
   canceled
   unpaid
   paused
+}
+
+enum ChargeStatus {
+  succeeded
+  pending
+  failed
 }
