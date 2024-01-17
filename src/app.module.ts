@@ -9,6 +9,8 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { ChargesModule } from './charges/charges.module';
 import { PaymentIntentsModule } from './payment-intents/payment-intents.module';
+import { EventsModule } from './events/events.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { PaymentIntentsModule } from './payment-intents/payment-intents.module';
     AccountsModule,
     ChargesModule,
     PaymentIntentsModule,
+    EventsModule,
+    ScheduleModule.forRoot(),
   ],
 })
 export class AppModule {}
